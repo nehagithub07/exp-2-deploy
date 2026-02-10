@@ -1,11 +1,10 @@
 # Netlify configuration for the static multi-page lab site.
 
 [build]
-  # All HTML, CSS, JS, and assets live in the repo root; no build step required.
   publish = "."
 
-# Redirect the site root to the main landing page so hitting "/" works.
+# Serve aim.html as the site root (no redirect in the browser bar)
 [[redirects]]
   from = "/"
   to = "/aim.html"
-  status = 301
+  status = 200
