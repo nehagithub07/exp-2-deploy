@@ -486,7 +486,7 @@
       if (event.key === "Escape" && reportAlertModal?.classList.contains("show")) closeReportAlert();
     });
 
-    function redirectToUserInputForm(returnUrl = "aim.html") {
+    function redirectToUserInputForm(returnUrl = "index.html") {
       const modalOpen = window.VLUserInputModal?.open;
       if (typeof modalOpen === "function") {
         modalOpen(returnUrl);
@@ -502,9 +502,9 @@
 
     function navigateToAim() {
       try {
-        if (window.top && window.top !== window) { window.top.location.href = "aim.html"; return; }
+        if (window.top && window.top !== window) { window.top.location.href = "index.html"; return; }
       } catch {}
-      window.location.href = "aim.html";
+      window.location.href = "index.html";
     }
 
     // ---- Guard: tracker must exist
