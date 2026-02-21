@@ -724,7 +724,7 @@
         </div>
       </div>
       <!-- Theory Questions -->
-      <section class="vl-card p-6 animate-fadeInUp">
+      <section class="section-content vl-card p-6 animate-fadeInUp">
      
         <div id="mcq-container" class="space-y-6 text-gray-700 text-lg"></div>
 
@@ -784,10 +784,12 @@
 
   <!-- Alert Modal (matches simulation popup style) -->
   <div id="warningModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
-    <div class="modal-box danger" role="document">
+    <div class="modal-box" role="document">
       <h2 id="modalTitle">Alert</h2>
       <p id="modalMessage"></p>
-      <button type="button" class="modal-close-btn" data-modal-close>OK</button>
+      <div class="modal-actions">
+        <button type="button" class="modal-close-btn" data-modal-close>OK</button>
+      </div>
     </div>
   </div>
 
@@ -940,18 +942,27 @@ function lockQuestionInputs(div) {
 
 function updateCheckButtonState() {
   if (!checkBtn) return;
-  if (setLocked) {
-    checkBtn.disabled = true;
-    return;
-  }
-  const allAnswered = currentSetIndices.every((qIndex) => {
-    const q = questions[qIndex];
-    return !!container.querySelector(`input[name="q${q.id}"]:checked`);
-  });
-  checkBtn.disabled = !allAnswered;
+  // Keep the button clickable so we can show alerts even when answers are missing.
+  checkBtn.disabled = false;
 }
 
+const POSTTEST_WELCOME_ALERT_MESSAGE = "Here, you will receive 5 questions at a time. Each time you click on the Refresh button, a new set of questions will be generated. Please note that all your attempted questions will be recorded and reflected in your Progress Report if you choose to generate it.";
+const POSTTEST_WELCOME_ALERT_AUDIO_SRC = "./audio/pretestpostestaudio.wav";
 let popupOnClose = null;
+
+function playMappedAlertAudio(soundEl, message) {
+  if (!soundEl || typeof soundEl.play !== "function") return;
+  const normalizedMessage = String(message || "").trim();
+  if (normalizedMessage !== POSTTEST_WELCOME_ALERT_MESSAGE) return;
+  if (soundEl.getAttribute("src") !== POSTTEST_WELCOME_ALERT_AUDIO_SRC) {
+    soundEl.setAttribute("src", POSTTEST_WELCOME_ALERT_AUDIO_SRC);
+  }
+  soundEl.currentTime = 0;
+  const playPromise = soundEl.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {});
+  }
+}
 
 function showPopup(message, title = "Alert", options = {}) {
   if (!message) return;
@@ -976,20 +987,14 @@ function showPopup(message, title = "Alert", options = {}) {
 
   if (box) {
     box.classList.remove("closing");
-    box.classList.add("danger");
+    box.classList.remove("danger");
   }
 
   modal.classList.add("show");
   document.body.classList.add("is-modal-open");
   window.setTimeout(() => okBtn?.focus?.(), 0);
 
-  if (sound && typeof sound.play === "function") {
-    sound.currentTime = 0;
-    const playPromise = sound.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(() => {});
-    }
-  }
+  playMappedAlertAudio(sound, message);
 }
 
 function closePopup() {
@@ -1050,7 +1055,6 @@ function attemptAlreadyUsedAlert() {
 
 function finalizeAttempt() {
   setLocked = true;
-  checkBtn.disabled = true;
   container.querySelectorAll("input[type='radio']").forEach(input => {
     input.disabled = true;
   });
@@ -1072,7 +1076,7 @@ function checkAnswers() {
     const firstInput = first
       ? container.querySelector(`input[name="q${first.id}"]`)
       : null;
-    showPopup("Please complete all the questions before checking the answers.", "Reminder", {
+    showPopup("Please attend all the questions before checking the answers.", "Reminder", {
       onClose: () => {
         try {
           firstInput?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1132,7 +1136,9 @@ checkBtn.addEventListener("click", () => {
 });
 
 /* ------------------ INITIALIZE ------------------ */
+const posttestWelcomeMessage = POSTTEST_WELCOME_ALERT_MESSAGE;
 pickRandomSet();
+showPopup(posttestWelcomeMessage, "Welcome to the Posttest section");
 </script>
 
 <!-- CHATBOT WIDGET -->
